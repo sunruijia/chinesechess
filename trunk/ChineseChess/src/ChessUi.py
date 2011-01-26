@@ -42,7 +42,17 @@ class Board():
         if(chessValue > 0)and (chessValue < 23) and (chessValue != 15):
             return self.chessList[chessValue]
         else:
-            return None              
+            return None 
+    def boardClick(self,position,boardWindow):
+        xx = position[0]
+        yy = position[1]
+        x = (xx-boardWindow.EDGE)/boardWindow.SQUARE +3
+        y = (yy-boardWindow.EDGE)/boardWindow.SQUARE +3
+        chess_value = board.board_status[x+y*16]
+        if chess_value != 0:
+            print"click chess ",chess_value
+            chessObj = self.getChessItem(chess_value)
+            chessObj.setSelect() 
             
         
 class BoardWindow():
@@ -60,7 +70,7 @@ class BoardWindow():
     def __drawChess(self,chess):
         self.screen.blit(chess.Image, (0,0)) 
     def __getWindowX(self,x):
-        return (x%15-3)*self.SQUARE +self.EDGE
+        return (x-3)*self.SQUARE +self.EDGE
     def __getWindowY(self,y):
         return (y-3)*self.SQUARE +self.EDGE   
     def drawBoard(self,board):
@@ -71,6 +81,8 @@ class BoardWindow():
                 if(chess_value != 0):
                     chess = board.getChessItem(chess_value)
                     self.screen.blit(chess.Image,(self.__getWindowX(x),self.__getWindowY(y)))          
+                    if(chess.getSelect()):
+                        return 
         pygame.display.flip()
                     
 
@@ -93,12 +105,17 @@ class Chess(Sprite):
         self.isSelect = False
     def __createChessImage(self):
         return pygame.image.load(self.chessImage[self.chess_value]).convert()
+    def setSelect(self):
+        self.isSelect = True
+    def getSelect(self):
+        return self.isSelect
                   
-def input(events): 
+def input(events,board,boardWindow): 
     for event in events: 
         if event.type == QUIT: 
             sys.exit(0) 
         elif event.type == MOUSEBUTTONDOWN:
+            board.boardClick(pygame.mouse.get_pos(),boardWindow)
             return
         else: 
             pass
@@ -110,7 +127,7 @@ board = Board()
 boardWindow.drawBoard(board)
 
 while True: 
-    input(pygame.event.get())
+    input(pygame.event.get(),board,boardWindow)
     pygame.display.flip()
    
    
