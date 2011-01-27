@@ -11,7 +11,7 @@ class Board():
         self.LEFT = 3
         self.RIGHT = 11
         self.chessList = [];
-        self.board_status = [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        self.init_status = [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0, 20, 19, 18, 17, 16, 17, 18, 19, 20,  0,  0,  0,  0,
@@ -43,17 +43,34 @@ class Board():
             return self.chessList[chessValue]
         else:
             return None 
-    def boardClick(self,position,boardWindow):
-        xx = position[0]
-        yy = position[1]
-        x = (xx-boardWindow.EDGE)/boardWindow.SQUARE +3
-        y = (yy-boardWindow.EDGE)/boardWindow.SQUARE +3
-        chess_value = board.board_status[x+y*16]
-        if chess_value != 0:
-            print"click chess ",chess_value
-            chessObj = self.getChessItem(chess_value)
-            chessObj.setSelect() 
+ 
+class BoardPhase():
+    def __init__(self,board):
+        self.board_status = [] 
+        self.board_status.extend(board.init_status)
+        self.player = 0
+        return
+    def movePiece(self,srcPos,desPos):
+        value = self.board_status[srcPos]
+        self.board_status[srcPos] = 0
+        self.board_status[desPos] = value
+        self.changeSide()
+        return srcPos + desPos*256
+    def changeSide(self):
+        self.player  =  1 -  self.player
+    def setSide(self,side):
+        self.player =  side
+    def getSide(self):
+        return self.player
+    def isSelfchess(self,chess_value):
+        if((chess_value & 8)!= 0) and (boardPhase.getSide() == 0):
+            return True
+        if((chess_value & 16)!= 0) and (boardPhase.getSide() == 1):
+            return True
+        return False
             
+                          
+                
         
 class BoardWindow():
     def __init__(self):
@@ -62,27 +79,49 @@ class BoardWindow():
         self.WITH = 520
         self.HEIGHT = 576
         self.window = pygame.display.set_mode((self.WITH, self.HEIGHT))
+        self.lastSelect = 0
+        self.lastMov = 0
+        self.COLOR_KEY = (0,255,0)
         pygame.display.set_caption('Chinese Chess') 
         self.boardImage = pygame.image.load(os.path.join("RES", "BOARD.BMP")).convert()
+        self.selectImage = pygame.image.load(os.path.join("RES", "SELECTED.BMP")).convert()
+        self.selectImage.set_colorkey(self.COLOR_KEY)
         self.screen = pygame.display.get_surface()   
     def __drawBoardBackgound(self):
         self.screen.blit(self.boardImage, (0, 0))   
-    def __drawChess(self,chess):
-        self.screen.blit(chess.Image, (0,0)) 
     def __getWindowX(self,x):
         return (x-3)*self.SQUARE +self.EDGE
     def __getWindowY(self,y):
-        return (y-3)*self.SQUARE +self.EDGE   
-    def drawBoard(self,board):
+        return (y-3)*self.SQUARE +self.EDGE
+    def __drawChess(self,chess,x,y,select=False):
+        self.screen.blit(chess.Image,(self.__getWindowX(x),self.__getWindowY(y)))
+        if select == True:
+            self.screen.blit(self.selectImage,(self.__getWindowX(x),self.__getWindowY(y)))  
+    def __XYtoBoardIndex(self,x,y):
+        return x+y*16    
+    def boardClick(self,position,boardPhase):
+        xx = position[0]
+        yy = position[1]
+        x = (xx-boardWindow.EDGE)/boardWindow.SQUARE +3
+        y = (yy-boardWindow.EDGE)/boardWindow.SQUARE +3
+        index = self.__XYtoBoardIndex(x,y)
+        chess_value = boardPhase.board_status[index]
+        if(chess_value != 0) and boardPhase.isSelfchess(chess_value):
+            self.lastSelect = index
+        elif self.lastSelect != 0:
+            self.lastMov = boardPhase.movePiece(self.lastSelect,index)
+            self.lastSelect = 0 
+    def drawBoard(self,board,boardPhase):
         self.__drawBoardBackgound()
         for x in range(board.LEFT, board.RIGHT+1):
             for y in range(board.TOP,board.BUTTOM+1):
-                chess_value = board.board_status[x+y*16]
+                index = self.__XYtoBoardIndex(x,y)
+                chess_value = boardPhase.board_status[index]
                 if(chess_value != 0):
                     chess = board.getChessItem(chess_value)
-                    self.screen.blit(chess.Image,(self.__getWindowX(x),self.__getWindowY(y)))          
-                    if(chess.getSelect()):
-                        return 
+                    self.__drawChess(chess,x,y)         
+                if(index == self.lastSelect)or (index == self.lastMov%256)or(index == self.lastMov/256):
+                    self.screen.blit(self.selectImage,(self.__getWindowX(x),self.__getWindowY(y)))  
         pygame.display.flip()
                     
 
@@ -105,17 +144,14 @@ class Chess(Sprite):
         self.isSelect = False
     def __createChessImage(self):
         return pygame.image.load(self.chessImage[self.chess_value]).convert()
-    def setSelect(self):
-        self.isSelect = True
-    def getSelect(self):
-        return self.isSelect
+
                   
 def input(events,board,boardWindow): 
     for event in events: 
         if event.type == QUIT: 
             sys.exit(0) 
         elif event.type == MOUSEBUTTONDOWN:
-            board.boardClick(pygame.mouse.get_pos(),boardWindow)
+            boardWindow.boardClick(pygame.mouse.get_pos(),boardPhase)
             return
         else: 
             pass
@@ -124,10 +160,11 @@ def input(events,board,boardWindow):
 pygame.init() 
 boardWindow = BoardWindow()
 board = Board()
-boardWindow.drawBoard(board)
-
+boardPhase = BoardPhase(board)
+boardWindow.drawBoard(board,boardPhase)
 while True: 
     input(pygame.event.get(),board,boardWindow)
+    boardWindow.drawBoard(board,boardPhase)
     pygame.display.flip()
    
    
