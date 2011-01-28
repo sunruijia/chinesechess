@@ -11,7 +11,7 @@ class Board():
         self.LEFT = 3
         self.RIGHT = 11
         self.chessList = [];
-        self.init_status = [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        self.init_status =  [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0, 20, 19, 18, 17, 16, 17, 18, 19, 20,  0,  0,  0,  0,
@@ -26,7 +26,43 @@ class Board():
                              0,  0,  0, 12, 11, 10,  9,  8,  9, 10, 11, 12,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0] 
+                             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+        self.inBoard = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.inFort = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.BiShopDelta = (-30,30,-34,34)
+        self.AdvisorDelta = (-17, -15, 15, 17)
+        self.KingDelta =  (-1,1,-16,16)
+        self.KnightDeltaPin = {-31:-16,-33:-16,-18:-1,14:-1,31:16,33:16,18:1,-14:1}
         self.__creatChessObjs()   
     def __creatChessObjs(self):       
         for i in range(8):
@@ -43,7 +79,25 @@ class Board():
             return self.chessList[chessValue]
         else:
             return None 
- 
+    def getBishopPin(self,src,dest):
+        return (src+dest)/2
+    def getKnightPin(self,src,dest):
+        return self.KnightDeltaPin.get(dest-src)+src  
+    def isSameHalf(self,src,dest):
+        return ((src ^ dest) & 0x80) == 0; 
+    def isSameRow(self,src,dest):
+        return ((src ^ dest)& 0xF0) == 0;
+    def isSameColum(self,src,dest):
+        return ((src ^ dest)& 0x0F) == 0;
+    def isCrossRiver(self,dest,player):
+        if(player == 0):
+            if dest & 0x80 == 0:
+                return True
+        elif(player == 1):
+            if dest & 0x80 == 0x80:
+                return True
+        return False
+     
 class BoardPhase():
     def __init__(self,board):
         self.board_status = [] 
@@ -63,11 +117,107 @@ class BoardPhase():
     def getSide(self):
         return self.player
     def isSelfchess(self,chess_value):
-        if((chess_value & 8)!= 0) and (boardPhase.getSide() == 0):
+        if((chess_value & 8)!= 0) and (self.getSide() == 0):
             return True
-        if((chess_value & 16)!= 0) and (boardPhase.getSide() == 1):
+        if((chess_value & 16)!= 0) and (self.getSide() == 1):
             return True
         return False
+    def isLegalMove(self,chess_value,board,src,dest):
+        if self.isSelfchess(chess_value):
+            if chess_value == 18 or chess_value == 10: #Bishop
+                delta =  dest - src
+                if board.inBoard[dest]== 1 and not self.isSelfchess(self.board_status[dest]) and board.isSameHalf(src,dest) and delta in board.BiShopDelta and self.board_status[board.getBishopPin(src,dest)]==0:                    
+                    return True 
+                return False
+            if chess_value == 9 or chess_value == 17: #Advisor
+                delta =  dest - src
+                if board.inFort[dest] == 1 and not self.isSelfchess(self.board_status[dest]) and delta in board.AdvisorDelta:
+                    return True
+                return False
+            if chess_value == 8 or chess_value == 16: #King
+                delta =  dest - src
+                if board.inFort[dest] == 1 and not self.isSelfchess(self.board_status[dest]) and delta in board.KingDelta:
+                    return True
+                return False
+            if chess_value == 19 or chess_value == 11: #Knight
+                delta =  dest - src
+                if board.inBoard[dest] == 1 and not self.isSelfchess(self.board_status[dest]) and delta in board.KnightDeltaPin.keys() and self.board_status[board.getKnightPin(src,dest)]==0:
+                    return True
+                return False
+            if chess_value == 20 or chess_value == 12: #Rook
+                pin = 0
+                if board.inBoard[dest] != 1 or  self.isSelfchess(self.board_status[dest]): #out side the board or the dest square has a self-side chess
+                    return False
+                delta =  dest - src
+                if board.isSameRow(src,dest):
+                    if delta < 0:
+                        delta = -1
+                    else:
+                        delta = 1
+                elif board.isSameColum(src,dest):
+                    if delta < 0:
+                        delta = -16
+                    else:
+                        delta = 16
+                else:
+                    return False
+                pin =  src + delta
+                while(pin != dest and self.board_status[pin] == 0):
+                    pin = pin +delta
+                if(pin == dest):
+                    return True               
+                return False
+            if chess_value == 21 or chess_value == 13: #Cannon
+                pin = 0
+                if board.inBoard[dest] != 1: #out side the board or the dest square has a self-side chess
+                    return False
+                delta =  dest - src
+                if board.isSameRow(src,dest):
+                    if delta < 0:
+                        delta = -1
+                    else:
+                        delta = 1
+                elif board.isSameColum(src,dest):
+                    if delta < 0:
+                        delta = -16
+                    else:
+                        delta = 16
+                else:
+                    return False
+                pin =  src + delta
+                while(pin != dest and self.board_status[pin] == 0):
+                    pin = pin +delta
+                if pin == dest: 
+                    if self.board_status[pin] == 0:
+                        return True
+                    else:
+                        return False 
+                else:
+                    if self.board_status[dest] != 0 and not self.isSelfchess(self.board_status[dest]) :
+                        pin = pin + delta
+                        while(pin != dest and self.board_status[pin] == 0):
+                            pin = pin + delta
+                        if pin == dest:
+                            return True
+                        else:
+                            return False                   
+                return False
+            if chess_value == 22 or chess_value == 14: #Pawn
+                delta =  dest - src
+                if self.isSelfchess(self.board_status[dest]) :
+                    return False
+                if board.inBoard[dest] == 1:
+                    if board.isCrossRiver(dest,self.getSide()) and (delta == -1 or delta == 1):
+                        return True
+                    else:
+                        if self.getSide() == 0 and delta == -16:
+                            return True
+                        if self.getSide() == 1 and delta == 16:
+                            return True
+                    return False
+                return False                        
+        return False
+      
             
                           
                 
@@ -99,7 +249,7 @@ class BoardWindow():
             self.screen.blit(self.selectImage,(self.__getWindowX(x),self.__getWindowY(y)))  
     def __XYtoBoardIndex(self,x,y):
         return x+y*16    
-    def boardClick(self,position,boardPhase):
+    def boardClick(self,position,boardPhase,board):
         xx = position[0]
         yy = position[1]
         x = (xx-boardWindow.EDGE)/boardWindow.SQUARE +3
@@ -109,8 +259,9 @@ class BoardWindow():
         if(chess_value != 0) and boardPhase.isSelfchess(chess_value):
             self.lastSelect = index
         elif self.lastSelect != 0:
-            self.lastMov = boardPhase.movePiece(self.lastSelect,index)
-            self.lastSelect = 0 
+            if boardPhase.isLegalMove(boardPhase.board_status[self.lastSelect],board,self.lastSelect,index):
+                self.lastMov = boardPhase.movePiece(self.lastSelect,index)
+                self.lastSelect = 0 
     def drawBoard(self,board,boardPhase):
         self.__drawBoardBackgound()
         for x in range(board.LEFT, board.RIGHT+1):
@@ -151,7 +302,7 @@ def input(events,board,boardWindow):
         if event.type == QUIT: 
             sys.exit(0) 
         elif event.type == MOUSEBUTTONDOWN:
-            boardWindow.boardClick(pygame.mouse.get_pos(),boardPhase)
+            boardWindow.boardClick(pygame.mouse.get_pos(),boardPhase,board)
             return
         else: 
             pass
