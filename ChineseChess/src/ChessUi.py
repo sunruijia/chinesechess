@@ -1,6 +1,7 @@
 import sys, os, pygame
 from pygame.locals import * 
 from pygame.sprite import Sprite
+from ChessEngine import *
 
 
 
@@ -63,6 +64,7 @@ class Board():
         self.AdvisorDelta = (-17, -15, 15, 17)
         self.KingDelta =  (-1,1,-16,16)
         self.KnightDeltaPin = {-31:-16,-33:-16,-18:-1,14:-1,31:16,33:16,18:1,-14:1}
+        self.KnightDeltaCheckedPin = {-31:-15,-33:-17,-18:-17,14:15,31:15,33:17,18:17,-14:-15}
         self.__creatChessObjs()   
     def __creatChessObjs(self):       
         for i in range(8):
@@ -82,7 +84,9 @@ class Board():
     def getBishopPin(self,src,dest):
         return (src+dest)/2
     def getKnightPin(self,src,dest):
-        return self.KnightDeltaPin.get(dest-src)+src  
+        return self.KnightDeltaPin.get(dest-src)+src 
+    def getKnightCheckedPin(self,src,dest):
+        return self.KnightDeltaCheckedPin.get(dest-src)+src  
     def isSameHalf(self,src,dest):
         return ((src ^ dest) & 0x80) == 0; 
     def isSameRow(self,src,dest):
@@ -169,7 +173,7 @@ class BoardPhase():
                 return False
             if chess_value == 21 or chess_value == 13: #Cannon
                 pin = 0
-                if board.inBoard[dest] != 1: #out side the board or the dest square has a self-side chess
+                if board.inBoard[dest] != 1: #out side the board
                     return False
                 delta =  dest - src
                 if board.isSameRow(src,dest):
@@ -214,8 +218,71 @@ class BoardPhase():
                             return True
                         if self.getSide() == 1 and delta == 16:
                             return True
-                    return False
-                return False                        
+                        return False
+                else:  
+                    return False                       
+        return False
+    def isChecked(self,board):
+        for src in range(256):
+            chess_value = boardPhase.board_status[src]
+            if (chess_value == 8 or chess_value == 16) and  self.isSelfchess(chess_value):  #find out the self side King
+                #Judge if king is checked by Pawn
+                if self.getSide()== 0: #if self is Red side
+                    for delta in (-1,1,-16):
+                        chess_value = self.board_status[src+delta]
+                        if chess_value == 14: #enemy Pawn
+                            return True
+                else:  #if self is Black side
+                    for delta in (-1,1,16):  #enemy Pawn
+                        chess_value = self.board_status[src+delta]
+                        if chess_value == 22:
+                            return True
+                #Judge if king is checked by Knight
+                for delta in  board.KnightDeltaPin.keys():
+                    dest = src + delta
+                    chess_value = self.board_status[dest]
+                    if (chess_value == 19 or chess_value == 11) and not self.isSelfchess(chess_value) and boardPhase.board_status[board.getKnightCheckedPin(src,dest)] == 0: #enemy knight and no pin
+                        return True 
+                #Judge if king is checked by Rook
+                for delta in board.KingDelta:
+                    dest = src + delta
+                    while(board.inBoard[dest]==1):
+                        chess_value = self.board_status[dest]
+                        if(chess_value != 0):
+                            if(chess_value == 20 or chess_value == 12) and not self.isSelfchess(chess_value): #enemy Rook
+                                return True
+                            else:
+                                break
+                        else:
+                            dest = dest +delta
+                #Judge if king is checked by Canon
+                for delta in board.KingDelta:
+                    dest = src + delta
+                    while(board.inBoard[dest]==1):
+                        chess_value = self.board_status[dest]
+                        if(chess_value != 0):
+                            dest =  dest + delta
+                            while(board.inBoard[dest]==1):
+                                chess_value = self.board_status[dest]
+                                if(chess_value != 0):
+                                    if(chess_value == 21 or chess_value == 13) and not self.isSelfchess(chess_value): #enemy Canon
+                                        return True
+                                    else:
+                                        return False
+                                else:
+                                    dest = dest +delta                                       
+                        else:
+                            dest =  dest + delta             
+                return False
+        return False
+    def isDead(self,chessEngine,board):
+        moves = []
+        movecount = chessEngine.GenerateMoves(self,board,moves)
+        if(movecount != 0):
+            for mov in moves:
+                
+                return True
+    
         return False
       
             
@@ -313,6 +380,7 @@ boardWindow = BoardWindow()
 board = Board()
 boardPhase = BoardPhase(board)
 boardWindow.drawBoard(board,boardPhase)
+chessEngine =  ChessEngine()
 while True: 
     input(pygame.event.get(),board,boardWindow)
     boardWindow.drawBoard(board,boardPhase)
