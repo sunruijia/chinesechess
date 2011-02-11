@@ -224,24 +224,27 @@ class BoardPhase():
         return False
     def isChecked(self,board):
         for src in range(256):
-            chess_value = boardPhase.board_status[src]
+            chess_value = self.board_status[src]
             if (chess_value == 8 or chess_value == 16) and  self.isSelfchess(chess_value):  #find out the self side King
                 #Judge if king is checked by Pawn
                 if self.getSide()== 0: #if self is Red side
                     for delta in (-1,1,-16):
                         chess_value = self.board_status[src+delta]
-                        if chess_value == 14: #enemy Pawn
+                        if chess_value == 22: #enemy Pawn
+                            print "checked by Pawn"
                             return True
                 else:  #if self is Black side
                     for delta in (-1,1,16):  #enemy Pawn
                         chess_value = self.board_status[src+delta]
-                        if chess_value == 22:
+                        if chess_value == 14:
+                            print "checked by Pawn"
                             return True
                 #Judge if king is checked by Knight
                 for delta in  board.KnightDeltaPin.keys():
                     dest = src + delta
                     chess_value = self.board_status[dest]
                     if (chess_value == 19 or chess_value == 11) and not self.isSelfchess(chess_value) and boardPhase.board_status[board.getKnightCheckedPin(src,dest)] == 0: #enemy knight and no pin
+                        print "checked by Knight"
                         return True 
                 #Judge if king is checked by Rook
                 for delta in board.KingDelta:
@@ -250,6 +253,7 @@ class BoardPhase():
                         chess_value = self.board_status[dest]
                         if(chess_value != 0):
                             if(chess_value == 20 or chess_value == 12) and not self.isSelfchess(chess_value): #enemy Rook
+                                print "checked by Rook"
                                 return True
                             else:
                                 break
@@ -266,9 +270,10 @@ class BoardPhase():
                                 chess_value = self.board_status[dest]
                                 if(chess_value != 0):
                                     if(chess_value == 21 or chess_value == 13) and not self.isSelfchess(chess_value): #enemy Canon
+                                        print "checked by Canon"
                                         return True
                                     else:
-                                        return False
+                                        break
                                 else:
                                     dest = dest +delta                                       
                         else:
@@ -277,12 +282,16 @@ class BoardPhase():
         return False
     def isDead(self,chessEngine,board):
         moves = []
-        movecount = chessEngine.GenerateMoves(self,board,moves)
+        movecount = chessEngine.GenerateMoves(board,moves)
         if(movecount != 0):
-            for mov in moves:
-                
-                return True
-    
+            for move in moves:
+                dest_chess_value = chessEngine.move_piece(self,move)
+                if not self.isChecked(board):
+                    chessEngine.undo_move_piece(self,move,dest_chess_value)
+                    return False
+                else:
+                    chessEngine.undo_move_piece(self,move,dest_chess_value)   
+            return True
         return False
       
             
@@ -381,6 +390,8 @@ board = Board()
 boardPhase = BoardPhase(board)
 boardWindow.drawBoard(board,boardPhase)
 chessEngine =  ChessEngine()
+flag =  boardPhase.isChecked(board)
+print flag
 while True: 
     input(pygame.event.get(),board,boardWindow)
     boardWindow.drawBoard(board,boardPhase)
