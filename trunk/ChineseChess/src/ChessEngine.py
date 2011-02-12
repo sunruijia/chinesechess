@@ -1,5 +1,7 @@
 class ChessEngine():
     def __init__(self):
+        self.vRed = 0
+        self.vBlack = 0
         self.PawnValue = [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                           0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                           0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -177,19 +179,69 @@ class ChessEngine():
                             moveCount = moveCount + 1 
                             #print "Pawn %d move: src %d, dest %d" %(chess_value,src,dest)                           
         return moveCount
+    def __mirrorSquare(self,index):
+        return 254 - index
+    def __addPiece(self,index,boardPhase,chess_value):
+        boardPhase.board_status[index] =  chess_value
+        if chess_value < 16:
+            self.vRed = self.vRed + self.ChessValueTable[chess_value - 8][index]
+        else:
+            self.vBlack = self.vBlack + self.ChessValueTable[chess_value - 16][self.__mirrorSquare(index)]
+    def __delPiece(self,index,boardPhase,chess_value):
+        boardPhase.board_status[index] =  0
+        if chess_value < 16:
+            self.vRed = self.vRed - self.ChessValueTable[chess_value - 8][index]
+        else:
+            self.vBlack = self.vBlack - self.ChessValueTable[chess_value - 16][self.__mirrorSquare(index)]   
+                 
     def move_piece(self,boardPhase,move):
         src = move%256
         dest = move/256
         dest_chess_value = boardPhase.board_status[dest]
-        boardPhase.board_status[dest] = boardPhase.board_status[src] #move the piece to new place
-        boardPhase.board_status[src] = 0  # delete the piece in the original place
+        if dest_chess_value != 0:
+            self.__delPiece(dest, boardPhase, boardPhase.board_status[dest])
+        self.__addPiece(dest,boardPhase,boardPhase.board_status[src]) #move the piece to new place
+        self.__delPiece(src, boardPhase, boardPhase.board_status[src]) # delete the piece in the original place
         return dest_chess_value     #return the dest piece for undo move. even it has no piece in dest, it will still return 0
     
     def undo_move_piece(self,boardPhase,move,dest_chess_value):
         src = move%256
         dest = move/256
-        boardPhase.board_status[src] = boardPhase.board_status[dest]
-        boardPhase.board_status[dest] = dest_chess_value
+        self.__delPiece(dest, boardPhase, boardPhase.board_status[dest])
+        self.__addPiece(src,boardPhase,boardPhase.board_status[dest])
+        if dest_chess_value != 0:
+            self.__addPiece(dest, boardPhase, dest_chess_value)
+            
+    def makeMove(self,boardPhase,board,move):
+        dest_chess_value = self.move_piece(boardPhase, move)
+        if boardPhase.isChecked(board):
+            self.undo_move_piece(boardPhase, move, dest_chess_value)
+            return False
+        boardPhase.changeSide()
+        return True
+        
+    def undoMakeMove(self,boardPhase,move,dest_chess_value):
+        self.undo_move_piece(boardPhase, move,dest_chess_value)
+        boardPhase.changeSide()
+                   
+    def negaMax_search(self,depth,boardPhase,board):
+        best = -100000
+        if(depth <0):
+            return self.__evaluate()
+        movs = []
+        movecount = self.GenerateMoves(boardPhase,board,movs)
+        if movecount != 0:
+            for move in movs:
+                dest_chess_value = self.move_piece(boardPhase,move)
+                val = -self.negaMax_search(depth - 1,boardPhase,board)
+                self.undo_move_piece(boardPhase, move, dest_chess_value)
+                if val > best:
+                    best  = val
+        return best
+    def __evaluate(self):
+        return
+        
+            
     
     
     
