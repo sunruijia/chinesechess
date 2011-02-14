@@ -116,7 +116,10 @@ class ChessEngine():
                             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
         self.ChessValueTable = {0:self.KingValue,1:self.AdvisorValue,2:self.BishopValue,3:self.KnightValue,
                                 4:self.RookValue,5:self.CannonValue,6:self.PawnValue}
-        self.HistoryTable=[]
+        self.HistoryTable=[0]*65536
+        self.distance = 0
+        self.computerMove = 0
+        self.MATE_VALUE = 10000
         return
     def __MOV(self,src,dest):
         return src+dest*256
@@ -216,30 +219,54 @@ class ChessEngine():
         dest_chess_value = self.move_piece(boardPhase, move)
         if boardPhase.isChecked(board):
             self.undo_move_piece(boardPhase, move, dest_chess_value)
-            return False
+            return (False,0)
         boardPhase.changeSide()
-        return True
+        self.distance =  self.distance + 1
+        return (True,dest_chess_value)
         
     def undoMakeMove(self,boardPhase,move,dest_chess_value):
         self.undo_move_piece(boardPhase, move,dest_chess_value)
+        self.distance =  self.distance - 1
         boardPhase.changeSide()
-                   
-    def negaMax_search(self,depth,boardPhase,board):
-        best = -100000
-        if(depth <0):
-            return self.__evaluate()
+                           
+    def __alpha_beta_search(self,depth,boardPhase,board,alpha,beta):
+        best_move = 0
+        best_value = alpha
+        isMated =  True
+        if(depth <= 0):
+            return self.__evaluate(boardPhase)
         movs = []
         movecount = self.GenerateMoves(boardPhase,board,movs)
         if movecount != 0:
+            movs.sort(cmp=lambda x,y:cmp(self.HistoryTable[x],self.HistoryTable[y]),reverse=True)
             for move in movs:
-                dest_chess_value = self.move_piece(boardPhase,move)
-                val = -self.negaMax_search(depth - 1,boardPhase,board)
-                self.undo_move_piece(boardPhase, move, dest_chess_value)
-                if val > best:
-                    best  = val
-        return best
-    def __evaluate(self):
-        return
+                result = self.makeMove(boardPhase,board,move)[0]
+                if(result[0] == False):
+                    self.undo_move_piece(boardPhase,move,result[1])
+                else:
+                    isMated = False
+                    val = -self.__alpha_beta_search(depth - 1,boardPhase,board,-beta,-alpha)
+                    self.undo_move_piece(boardPhase, move, result[1])
+                    if val > beta:
+                        best_value = val
+                        best_move = move
+                        break
+                    if val >alpha:
+                        alpha = val
+                        best_value = val
+                        best_move = move
+            if isMated == True:
+                return self.distance - self.MATE_VALUE
+            if best_move != 0:
+                self.HistoryTable[best_move] += depth * depth;
+                if self.distance == 0:
+                    self.computerMove = best_move
+            return best_value
+    def __evaluate(self,boardPhase):
+        if boardPhase.getSide == 0:           
+            return self.vRed - self.vBlack + 3
+        else:
+            return self.vBlack - self.vRed + 3
         
             
     
