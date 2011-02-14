@@ -1,3 +1,4 @@
+import time
 class ChessEngine():
     def __init__(self):
         self.vRed = 0
@@ -120,6 +121,9 @@ class ChessEngine():
         self.distance = 0
         self.computerMove = 0
         self.MATE_VALUE = 10000
+        self.DEPTH_LIMIT = 32
+        self.TIME_LIMIT = 2
+        self.WIN_VALUE =  self.MATE_VALUE - 100
         return
     def __MOV(self,src,dest):
         return src+dest*256
@@ -267,8 +271,15 @@ class ChessEngine():
             return self.vRed - self.vBlack + 3
         else:
             return self.vBlack - self.vRed + 3
-        
-            
+    def mainSearch(self,boardPhase,board):
+        start_time = time.time()
+        for i in range(self.DEPTH_LIMIT):
+            value = self.__alpha_beta_search(i+1,boardPhase,board,-self.MATE_VALUE, self.MATE_VALUE)
+            if value > self.WIN_VALUE or value < -self.WIN_VALUE:
+                break
+            if time.time() - start_time > self.TIME_LIMIT :
+                break
+               
     
     
     
