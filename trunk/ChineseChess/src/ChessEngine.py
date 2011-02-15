@@ -122,7 +122,7 @@ class ChessEngine():
         self.computerMove = 0
         self.MATE_VALUE = 10000
         self.DEPTH_LIMIT = 32
-        self.TIME_LIMIT = 2
+        self.TIME_LIMIT = 1
         self.WIN_VALUE =  self.MATE_VALUE - 100
         return
     def __MOV(self,src,dest):
@@ -214,18 +214,21 @@ class ChessEngine():
     def undo_move_piece(self,boardPhase,move,dest_chess_value):
         src = move%256
         dest = move/256
-        self.__delPiece(dest, boardPhase, boardPhase.board_status[dest])
-        self.__addPiece(src,boardPhase,boardPhase.board_status[dest])
+        temp = boardPhase.board_status[dest]
+        self.__delPiece(dest, boardPhase, temp)
+        self.__addPiece(src,boardPhase,temp)
         if dest_chess_value != 0:
             self.__addPiece(dest, boardPhase, dest_chess_value)
             
     def makeMove(self,boardPhase,board,move):
+        temp = boardPhase.board_status[move%256]
         dest_chess_value = self.move_piece(boardPhase, move)
         if boardPhase.isChecked(board):
             self.undo_move_piece(boardPhase, move, dest_chess_value)
             return (False,0)
         boardPhase.changeSide()
         self.distance =  self.distance + 1
+        print "Move chess %d, from %d to %d" %(temp,move%256,move/256)
         return (True,dest_chess_value)
         
     def undoMakeMove(self,boardPhase,move,dest_chess_value):
@@ -244,13 +247,11 @@ class ChessEngine():
         if movecount != 0:
             movs.sort(cmp=lambda x,y:cmp(self.HistoryTable[x],self.HistoryTable[y]),reverse=True)
             for move in movs:
-                result = self.makeMove(boardPhase,board,move)[0]
-                if(result[0] == False):
-                    self.undo_move_piece(boardPhase,move,result[1])
-                else:
+                result = self.makeMove(boardPhase,board,move)
+                if result[0] == True:
                     isMated = False
                     val = -self.__alpha_beta_search(depth - 1,boardPhase,board,-beta,-alpha)
-                    self.undo_move_piece(boardPhase, move, result[1])
+                    self.undoMakeMove(boardPhase, move, result[1])
                     if val > beta:
                         best_value = val
                         best_move = move
@@ -271,14 +272,18 @@ class ChessEngine():
             return self.vRed - self.vBlack + 3
         else:
             return self.vBlack - self.vRed + 3
-    def mainSearch(self,boardPhase,board):
+    def __mainSearch(self,boardPhase,board):
         start_time = time.time()
-        for i in range(self.DEPTH_LIMIT):
-            value = self.__alpha_beta_search(i+1,boardPhase,board,-self.MATE_VALUE, self.MATE_VALUE)
-            if value > self.WIN_VALUE or value < -self.WIN_VALUE:
-                break
-            if time.time() - start_time > self.TIME_LIMIT :
-                break
+        #for i in range(self.DEPTH_LIMIT):
+        #for i in range(self.DEPTH_LIMIT):
+        value = self.__alpha_beta_search(2,boardPhase,board,-self.MATE_VALUE, self.MATE_VALUE)
+        #if value > self.WIN_VALUE or value < -self.WIN_VALUE:
+            #break
+            #if time.time() - start_time > self.TIME_LIMIT :
+            #    break
+    def getBestMove(self,boardPhase,board):
+        self.__mainSearch(boardPhase,board)
+        return self.computerMove
                
     
     
