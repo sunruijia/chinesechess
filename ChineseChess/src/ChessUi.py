@@ -108,12 +108,18 @@ class BoardPhase():
         self.board_status.extend(board.init_status)
         self.player = 0
         return
-    def movePiece(self,srcPos,desPos):
+    def movePiece(self,board,srcPos,desPos):
         value = self.board_status[srcPos]
         self.board_status[srcPos] = 0
+        dest_value =  self.board_status[desPos]
         self.board_status[desPos] = value
-        self.changeSide()
-        return srcPos + desPos*256
+        if self.isChecked(board):
+            self.board_status[srcPos] = self.board_status[desPos]
+            self.board_status[desPos] = dest_value
+            return 0
+        else:
+            self.changeSide()
+            return srcPos + desPos*256
     def changeSide(self):
         self.player  =  1 -  self.player
     def setSide(self,side):
@@ -246,43 +252,45 @@ class BoardPhase():
                     if (chess_value == 19 or chess_value == 11) and not self.isSelfchess(chess_value) and boardPhase.board_status[board.getKnightCheckedPin(src,dest)] == 0: #enemy knight and no pin
                         print "checked by Knight"
                         return True 
-                #Judge if king is checked by Rook
+                #Judge if king is checked by Rook or King
                 for delta in board.KingDelta:
                     dest = src + delta
                     while(board.inBoard[dest]==1):
                         chess_value = self.board_status[dest]
                         if(chess_value != 0):
-                            if(chess_value == 20 or chess_value == 12) and not self.isSelfchess(chess_value): #enemy Rook
-                                print "checked by Rook"
+                            if(chess_value == 20 or chess_value == 12 or chess_value == 16 or chess_value == 8) and not self.isSelfchess(chess_value): #enemy Rook or king
+                                print "checked by Rook or king"
                                 return True
                             else:
                                 break
                         else:
                             dest = dest +delta
+
                 #Judge if king is checked by Canon
                 for delta in board.KingDelta:
                     dest = src + delta
                     while(board.inBoard[dest]==1):
                         chess_value = self.board_status[dest]
                         if(chess_value != 0):
-                            dest =  dest + delta
-                            while(board.inBoard[dest]==1):
-                                chess_value = self.board_status[dest]
-                                if(chess_value != 0):
-                                    if(chess_value == 21 or chess_value == 13) and not self.isSelfchess(chess_value): #enemy Canon
-                                        print "checked by Canon"
-                                        return True
-                                    else:
-                                        break
-                                else:
-                                    dest = dest +delta                                       
+                            break                                     
                         else:
-                            dest =  dest + delta             
+                            dest =  dest + delta 
+                    dest =  dest + delta
+                    while(board.inBoard[dest]==1):
+                        chess_value = self.board_status[dest]
+                        if(chess_value != 0):
+                            if(chess_value == 21 or chess_value == 13) and not self.isSelfchess(chess_value): #enemy Canon
+                                print "chessvalue %d, side %d checked by Canon" %(chess_value,self.getSide())
+                                return True
+                            else:
+                                break
+                        else:
+                            dest = dest +delta                      
                 return False
         return False
     def isDead(self,chessEngine,board):
         moves = []
-        movecount = chessEngine.GenerateMoves(board,moves)
+        movecount = chessEngine.GenerateMoves(self,board,moves)
         if(movecount != 0):
             for move in moves:
                 dest_chess_value = chessEngine.move_piece(self,move)
@@ -325,7 +333,7 @@ class BoardWindow():
             self.screen.blit(self.selectImage,(self.__getWindowX(x),self.__getWindowY(y)))  
     def __XYtoBoardIndex(self,x,y):
         return x+y*16    
-    def boardClick(self,position,boardPhase,board):
+    def boardClick(self,position,boardPhase,board,chessEngine):
         xx = position[0]
         yy = position[1]
         x = (xx-boardWindow.EDGE)/boardWindow.SQUARE +3
@@ -334,10 +342,22 @@ class BoardWindow():
         chess_value = boardPhase.board_status[index]
         if(chess_value != 0) and boardPhase.isSelfchess(chess_value):
             self.lastSelect = index
+            self.__drawChess(board.getChessItem(chess_value),x,y,True)
         elif self.lastSelect != 0:
             if boardPhase.isLegalMove(boardPhase.board_status[self.lastSelect],board,self.lastSelect,index):
-                self.lastMov = boardPhase.movePiece(self.lastSelect,index)
-                self.lastSelect = 0 
+                mov = boardPhase.movePiece(board,self.lastSelect,index) 
+                self.lastMov =  mov
+                self.lastSelect = 0
+                if mov != 0:
+                    self.lastMov =  mov
+                    
+                    self.lastSelect = 0 
+                    if boardPhase.isDead(chessEngine,board):
+                        print "Win!"
+                    else:
+                        mov = chessEngine.getBestMove(boardPhase, board)
+                        boardPhase.movePiece(board,mov%256,mov/256)
+                        
     def drawBoard(self,board,boardPhase):
         self.__drawBoardBackgound()
         for x in range(board.LEFT, board.RIGHT+1):
@@ -371,14 +391,14 @@ class Chess(Sprite):
         self.isSelect = False
     def __createChessImage(self):
         return pygame.image.load(self.chessImage[self.chess_value]).convert()
-
+ 
                   
-def input(events,board,boardWindow): 
+def input(events,board,boardWindow,chessEngine): 
     for event in events: 
         if event.type == QUIT: 
             sys.exit(0) 
         elif event.type == MOUSEBUTTONDOWN:
-            boardWindow.boardClick(pygame.mouse.get_pos(),boardPhase,board)
+            boardWindow.boardClick(pygame.mouse.get_pos(),boardPhase,board,chessEngine)
             return
         else: 
             pass
@@ -393,7 +413,7 @@ chessEngine =  ChessEngine()
 flag =  boardPhase.isChecked(board)
 print flag
 while True: 
-    input(pygame.event.get(),board,boardWindow)
+    input(pygame.event.get(),board,boardWindow,chessEngine)
     boardWindow.drawBoard(board,boardPhase)
     pygame.display.flip()
    
