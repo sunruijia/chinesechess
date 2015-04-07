@@ -1,0 +1,1 @@
+Chinese Chess game written in Python with PyGame. Just for Python exercise and some AI algorithm exercise.
